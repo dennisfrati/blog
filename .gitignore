@@ -10,3 +10,4 @@ resources/
 # File temporanei e log
 *.log
 .DS_Store
+.hugo_build.lock
