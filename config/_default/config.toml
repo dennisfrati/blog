@@ -1,0 +1,15 @@
+[params.author]
+   name = "Dennis Frati"
+   email = "dennis.frati@gmail.com"
+   image = "den.png"
+   headline = "Sysadmin - Coder - Self-taught guy from Italy 🇮🇹"
+   bio = "Hy, i'm Dennis Frati and you are on my personal blog."
+   links = [
+     { email = "dennis.frati@gmail.com" },
+     { discord = "https://discord.gg/dennisfrati" },
+     { github = "https://github.com/dennisfrati" },
+     { instagram = "https://instagram.com/dennis.frati" },
+     { telegram = "https://t.me/dennisfrati" },
+     { threads = "https://www.threads.net/@dennis.frati" },
+     { youtube = "https://youtube.com/@denryanfrati" },
+]

@@ -1,0 +1,14 @@
+languageCode = "it"
+languageName = "Italiano"
+weight = 1
+title = ""
+contentDir = "content/it"
+
+[params]
+  displayName = "IT"
+  isoCode = "it"
+  rtl = false
+  dateFormat = "2 gennaio 2006"
+  description = "Blog personale di Dennis Frati"
+  logo = "img/logo.png"
+  secondaryLogo = "img/logo_inverted.png"

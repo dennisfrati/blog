@@ -1,0 +1,40 @@
+[[main]]
+  name = "articoli"
+  pageRef = "articoli"
+  weight = 20
+
+[[main]] 
+  name = "Scripts"
+  pageRef = "scripts"
+  weight = 30
+
+[[main]]
+  name = "Comandi"
+  pageRef = "commands"
+  weight = 40
+
+[[main]]
+  name = "Tags"
+  pageRef = "tags"
+  weight = 50
+
+[[footer]]
+  name = "articoli"
+  pageRef = "articoli"
+  weight = 20
+
+[[footer]]
+   name = "Comandi"
+   pageRef = "commands"
+   weight = 20
+
+[[footer]] 
+  name = "Scripts"
+  pageRef = "scripts"
+  weight = 30
+
+ [[footer]]
+   name = "Tags"
+   pageRef = "tags"
+   weight = 40
+

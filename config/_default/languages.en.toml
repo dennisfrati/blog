@@ -1,0 +1,13 @@
+languageCode = "en"
+languageName = "English"
+weight = 1
+title = ""
+
+[params]
+  displayName = "EN"
+  isoCode = "en"
+  rtl = false
+  dateFormat = "2 January 2006"
+  description = "Personal blog by Dennis Frati."
+  logo = "img/logo.png"
+  secondaryLogo = "img/logo_inverted.png" 

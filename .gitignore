@@ -1,0 +1,12 @@
+# GitHub Self-hosted Runner
+actions-runner/
+_work/
+
+# Hugo - Cartelle generate
+public/
+resources/
+.hugo_build.cfg
+
+# File temporanei e log
+*.log
+.DS_Store
