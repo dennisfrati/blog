@@ -3,7 +3,7 @@
    email = "dennis.frati@gmail.com"
    image = "den.png"
    headline = "Sysadmin - Coder - Self-taught guy from Italy 🇮🇹"
-   bio = "Hy, i'm Dennis Frati and you are on my personal blog."
+   bio = "Sysadmin - Coder - Self-taught guy from Italy 🇮🇹"
    links = [
      { email = "dennis.frati@gmail.com" },
      { discord = "https://discord.gg/dennisfrati" },
