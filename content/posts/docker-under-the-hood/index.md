@@ -48,7 +48,7 @@ The monolith became a bottleneck for both the infrastructure and the people buil
 
 The idea behind microservices is simple: break the monolith into small, independent services. Each service does one thing, runs as its own process, communicates with others through APIs, and can be deployed independently.
 Your e-commerce platform becomes: an auth service, a catalog service, a cart service, a payment service, an order service, a notification service. The catalog team can deploy 10 times a day without touching payments. If the notification service crashes, people can still buy things. Need more capacity for the catalog during Black Friday? Scale just that service, not the whole system.
-But microservices created a new problem: instead of one application to deploy and manage, now you have 20. Or 100. Or 500. Each one needs its own environment, its own dependencies, its own runtime. The catalog runs Python 3.11, payments runs Java 17, notifications runs Node.js 20. How do you run all of these on the same servers without them conflicting with each other?
+But microservices created a new problem: instead of one application to deploy and manage, now you have 20. Or 100. Or 500. Each one needs its own environment, its own dependencies, its own runtime. The catalog runs `Python 3.11`, payments runs `Java 17`, notifications runs `Node.js 20`. How do you run all of these on the same servers without them conflicting with each other?
 
 ## Virtual machines: the first attempt
 
@@ -69,7 +69,7 @@ But beneath all of this — Docker, Kubernetes, container orchestration — ther
 
 ### Types of namespaces 
 #### PID
-Every process in Linux has a Process ID. Normally they all share the same numbering — PID 1 is init/systemd, and everything else counts up from there. A PID namespace gives a process its own independent process tree.
+Every process in Linux has a Process ID. Normally they all share the same numbering — PID 1 is `init/systemd`, and everything else counts up from there. A PID namespace gives a process its own independent process tree.
 The first process inside a new PID namespace becomes PID 1 in that namespace. This is important because PID 1 has a special role in Linux: it adopts orphaned processes and receives signals differently. Inside the namespace, this process is init. But from the outside, it's just a regular process with a normal PID like 58421.
 This means a process inside a PID namespace can only see itself and its children. It has no idea that thousands of other processes exist on the host. If it runs `ps aux`, it sees a nearly empty system. If it tries to `kill` a PID outside its namespace, it can't — that PID simply doesn't exist in its world.
  
@@ -89,7 +89,7 @@ ps aux | grep unshare
 # you'll see the process with a normal PID like 58421
 ```
 
-The --mount-proc flag is important: without it, ps reads /proc from the host and you'd still see everything. By remounting /proc, you tell the kernel to show only the processes visible inside this namespace.
+The `--mount-proc` flag is important: without it, `ps` reads `/proc` from the host and you'd still see everything. By remounting /proc, you tell the kernel to show only the processes visible inside this namespace.
 Real-world impact: this is why docker top shows different PIDs than what you see inside the container. Same process, two different PID trees.
 
 #### NET
