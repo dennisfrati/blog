@@ -186,9 +186,6 @@ Generate auto-signed certificates for encrypted communication with `openssl` com
 - `-out`: path for the certificate file
 - `-subj "/CN=..."`: set the Common Name without interactive prompts
 - `-addext "subjectAltName=..."`: add SANs (IP addresses and DNS names) so clients accept the certificate when connecting by IP or hostname
-- `-rand`: generates cryptographically secure random bytes
-- `-base64`: encodes the output in base64 so it's a readable string instead of raw bytes
-48: number of bytes to generate (48 bytes = 64 characters in base64)"
 
 </details>
 
@@ -294,7 +291,7 @@ Create `docker-compose.yml` with a port is not used on your system.
 sudo ss -tulpn | grep -E ':9[0-9]{3}'
 
 # select port 
-AGENT-PORT="<INSERT-FREEDOM-PORT>"
+AGENT_PORT="<AVAILABLE_PORT>"
 
 # content of docker-compose.yml
 VAULT_UID=$(id -u vaultwarden)
@@ -308,7 +305,7 @@ services:
     security_opt:
       - no-new-privileges:true
     ports:
-      - "${AGENT-PORT}:9001"
+      - "${AGENT_PORT}:9001"
     volumes:
       - /run/user/${VAULT_UID}/docker.sock:/var/run/docker.sock
       - /home/vaultwarden/.local/share/docker/volumes:/var/lib/docker/volumes
@@ -316,7 +313,7 @@ EOF
 ```
 
 ``` bash
-sudo ufw allow from 127.0.0.1 to any port <FREEDOM-PORT>
+sudo ufw allow from 127.0.0.1 to any port <AVAILABLE_PORT>
 ```
 
 Launch portainer agent.
