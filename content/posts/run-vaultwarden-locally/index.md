@@ -8,7 +8,7 @@ summary: "How to self-host vaultwarden locally using docker-rootless and Nginx r
 ---
 
 ## VAULTWARDEN INSTALLATION 
-A complete guide to **self-hosting Vaultwarden** — a lightweight, open-source password manager compatible with Bitwarden clients — using Docker rootless for better security isolation. This setup includes a dedicated system user, Nginx reverse proxy with SSL, Argon2 hashed admin token, firewall hardening with UFW and portainer agent for checking cointaner status.   
+A complete guide to **self-hosting Vaultwarden** — a lightweight, open-source password manager compatible with Bitwarden clients — using Docker rootless for better security isolation. This setup includes a dedicated system user, Nginx reverse proxy with SSL, Argon2 hashed admin token, firewall hardening with UFW and portainer agent for checking container status.   
 {{< icon "github" >}} [Vaultwarden](https://github.com/dani-garcia/vaultwarden)
 
 ### Prerequisites 
@@ -36,8 +36,8 @@ ls /run/user/$(id -u vaultwarden)
 ```
 #### Create directories.
 
-Directory `data` will cointain everything.
-Directory `portainer-agent` will cointain agent.
+Directory `data` will contain everything.
+Directory `portainer-agent` will contain agent.
 
 ```bash 
 sudo -u vaultwarden mkdir -p /home/vaultwarden/vaultwarden/data 
@@ -173,7 +173,7 @@ docker compose up -d --force-recreate'
 
 #### Generate certificates.
 
-Generate auto-signed certificates for encrypted comunication with `openssl` command.
+Generate auto-signed certificates for encrypted communication with `openssl` command.
 
 <details>
 <summary> OpenSSL flags explained </summary>
@@ -269,7 +269,7 @@ sudo ufw allow in on <INTERFACE-LAN> from <NET-ADDRESS>/24 to any port 4080 prot
 ```
 
 #### Install certificate on client.
-Copy `*.crt` file and install on your client (Iphone/Mac/Android)
+Copy `*.crt` file and install on your client (IPhone/Mac/Android)
 
 ```bash
 sudo cp /etc/nginx/ssl/vaultwarden.crt /tmp/
@@ -284,7 +284,7 @@ Install `Bitwarden` on your client, open it and add `https://<IP-SERVER>:4080`.
 After insert mail and password you insert on server.
 
 #### Disable registration. 
-Change `SIGNUPS_ALLOWED=true` to `SIGNUPS_ALLOWED=false` on `docker-compose.yml` and relaunch cointaner with [command](#start-docker-compose).
+Change `SIGNUPS_ALLOWED=true` to `SIGNUPS_ALLOWED=false` on `docker-compose.yml` and relaunch container with [command](#start-docker-compose).
 
 #### Install agent.
 Create `docker-compose.yml` with a port is not used on your system.
@@ -328,6 +328,28 @@ docker compose up -d --force-recreate'
 ```
 
 Go to the Portainer dashboard, navigate to Environments → Add environment, select Docker Standalone → Agent, and enter your server IP with the agent port (e.g. 192.168.1.21:9003) as the Environment URL.
+
+#### Backup
+
+The `./data` directory contains the SQLite database with all your vault entries. Schedule a regular backup to avoid data loss.
+
+```bash
+# create backup directory
+sudo -u vaultwarden mkdir -p /home/vaultwarden/backups
+
+# edit vaultwarden crontab
+sudo crontab -u vaultwarden -e
+```
+
+Add these lines to schedule a daily backup at 3 AM and auto-delete backups older than 30 days.
+
+```bash
+# daily backup at 3 AM
+0 3 * * * tar czf /home/vaultwarden/backups/vaultwarden-$(date +\%Y\%m\%d).tar.gz -C /home/vaultwarden/vaultwarden data/
+
+# delete backups older than 30 days
+0 4 * * * find /home/vaultwarden/backups -name \"*.tar.gz\" -mtime +30 -delete
+```
 
 ### Conclusion
 You now have a fully self-hosted password manager running in a security-hardened environment — Docker rootless, dedicated user, SSL encryption, Argon2 hashed admin token, and firewall rules. Your passwords never leave your network and you have full control over your data.
