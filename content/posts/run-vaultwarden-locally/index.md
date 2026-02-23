@@ -331,7 +331,7 @@ cd /home/vaultwarden/vaultwarden/portainer-agent/
 docker compose up -d --force-recreate'
 ```
 
-Go to the Portainer dashboard, navigate to Environments → Add environment, select Docker Standalone → Agent, and enter your server IP with the agent port (e.g. 192.168.1.21:9003) as the Environment URL.
+Go to the Portainer dashboard, navigate to Environments → Add environment, select Docker Standalone → Agent, and enter your server IP with the agent port (e.g. IP_ADDRESS:AVAILABLE_PORT) as the Environment URL.
 
 #### Backup
 
