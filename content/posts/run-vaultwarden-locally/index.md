@@ -26,7 +26,7 @@ Cloud-based solutions like 1Password or Bitwarden's hosted service store your cr
 
 #### Create a dedicated user and enable linger
 By default, `systemd` kills all user processes on logout. Enabling linger keeps the user's services running in the background even without an active session — essential for Docker rootless containers to stay up.
-After you enable linger you have to watch content of `/run/user/USER-ID`, this checks that the user's runtime directory exists, which confirms that linger is **active** and systemd has **started the user session**. This directory contains essential runtime resources like the `D-Bus socket` and the `Docker rootless socket`. If it doesn't exist, Docker rootless won't be able to start.
+After you enable linger you have to watch content of `/run/user/USER_ID`, this checks that the user's runtime directory exists, which confirms that linger is **active** and systemd has **started the user session**. This directory contains essential runtime resources like the `D-Bus socket` and the `Docker rootless socket`. If it doesn't exist, Docker rootless won't be able to start.
 
 ```bash 
 # add user 
@@ -280,11 +280,11 @@ sudo cp /etc/nginx/ssl/vaultwarden.crt /tmp/
 cd /tmp && python3 -m http.server 8080 
 ```
 
-On client go to `http://<IP-SERVER>:8080/vaultwarden.crt` and your client will download certificate.
+On client go to `http://<IP_SERVER>:8080/vaultwarden.crt` and your client will download certificate.
 Install using settings of your client.
 
 #### Application settings
-Install `Bitwarden` on your client, open it and add `https://<IP-SERVER>:4080`.
+Install `Bitwarden` on your client, open it and add `https://<IP_ADDRESS>:4080`.
 After insert mail and password you insert on server.
 
 #### Disable registration 
