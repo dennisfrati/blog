@@ -11,6 +11,9 @@ summary: "How to self-host vaultwarden locally using docker-rootless and Nginx r
 A complete guide to **self-hosting Vaultwarden** — a lightweight, open-source password manager compatible with Bitwarden clients — using Docker rootless for better security isolation. This setup includes a dedicated system user, Nginx reverse proxy with SSL, Argon2 hashed admin token, firewall hardening with UFW and portainer agent for checking container status.   
 {{< icon "github" >}} [Vaultwarden](https://github.com/dani-garcia/vaultwarden)
 
+### Why self-host a password manager?
+Cloud-based solutions like 1Password or Bitwarden's hosted service store your credentials on third-party servers — servers you don't control. By self-hosting Vaultwarden, your encrypted vault stays entirely on your own hardware, accessible only through your local network or VPN. You get full control over your data, no subscription fees, and the peace of mind that your passwords never leave your infrastructure.
+
 ### Prerequisites 
 - systemd 
 - nginx
@@ -19,6 +22,7 @@ A complete guide to **self-hosting Vaultwarden** — a lightweight, open-source 
 - openssl 
 - ufw 
 - argon2
+- wireguard (Optional)
 
 #### Create a dedicated user and enable linger.
 By default, `systemd` kills all user processes on logout. Enabling linger keeps the user's services running in the background even without an active session — essential for Docker rootless containers to stay up.
@@ -77,8 +81,6 @@ Using Argon2, you can hash the admin password so it's never stored in plain text
 - `-p 4`: parallelism (4 threads)
 
 </details>
-
-
 
 ```bash
 # token creation
@@ -197,7 +199,7 @@ sudo openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
   -keyout /etc/nginx/ssl/vaultwarden.key \
   -out /etc/nginx/ssl/vaultwarden.crt \
   -subj "/CN=<name>" \
-  -addext "subjectAltName=IP:<Insert-Your-IP>,IP:<Insert-Your-IP>,DNS:<Insert-Your-DomainName>"
+  -addext "subjectAltName=IP:<IP_ADDRESS>,DNS:<DOMAIN_NAME>"
 ```
 
 #### Configure nginx reverse proxy.
@@ -209,7 +211,7 @@ sudo tee -a /etc/nginx/sites-enabled/reverse-proxy <<'EOF'
 
 server {
     listen 4080 ssl;
-    server_name <IP-ADDRESS>;
+    server_name <IP_ADDRESS> <DOMAIN_NAME>;
 
     ssl_certificate     /etc/nginx/ssl/vaultwarden.crt;
     ssl_certificate_key /etc/nginx/ssl/vaultwarden.key;
@@ -262,7 +264,12 @@ sudo journalctl -u nginx -f
 
 If you are in lan run this command.
 ```bash
-sudo ufw allow in on <INTERFACE-LAN> from <NET-ADDRESS>/24 to any port 4080 proto tcp comment "Vaultarden from lan"
+sudo ufw allow in on <LAN_INTERFACE> from <LAN_ADDRESS>/24 to any port 4080 proto tcp comment "Vaultarden from lan"
+```
+
+If you're behind a VPN run this command.
+```bash
+sudo ufw allow in on <VPN_INTERFACE> from <VPN_ADDRESS>/24 to any port 4080 proto tcp comment "Vaultarden from VPN"
 ```
 
 #### Install certificate on client.
