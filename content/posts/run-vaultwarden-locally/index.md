@@ -14,7 +14,7 @@ A complete guide to **self-hosting Vaultwarden** — a lightweight, open-source 
 ### Why self-host a password manager?
 Cloud-based solutions like 1Password or Bitwarden's hosted service store your credentials on third-party servers — servers you don't control. By self-hosting Vaultwarden, your encrypted vault stays entirely on your own hardware, accessible only through your local network or VPN. You get full control over your data, no subscription fees, and the peace of mind that your passwords never leave your infrastructure.
 
-### Prerequisites 
+### Prerequisites: 
 - systemd 
 - nginx
 - docker-rootless
@@ -24,7 +24,7 @@ Cloud-based solutions like 1Password or Bitwarden's hosted service store your cr
 - argon2
 - wireguard (Optional)
 
-#### Create a dedicated user and enable linger.
+#### Create a dedicated user and enable linger
 By default, `systemd` kills all user processes on logout. Enabling linger keeps the user's services running in the background even without an active session — essential for Docker rootless containers to stay up.
 After you enable linger you have to watch content of `/run/user/USER-ID`, this checks that the user's runtime directory exists, which confirms that linger is **active** and systemd has **started the user session**. This directory contains essential runtime resources like the `D-Bus socket` and the `Docker rootless socket`. If it doesn't exist, Docker rootless won't be able to start.
 
@@ -38,7 +38,7 @@ sudo loginctl enable-linger vaultwarden
 # check 
 ls /run/user/$(id -u vaultwarden)
 ```
-#### Create directories.
+#### Create directories
 
 Directory `data` will contain everything.
 Directory `portainer-agent` will contain agent.
@@ -64,7 +64,7 @@ sudo tree -a /home/vaultwarden/vaultwarden/
 4 directories, 7 files
 ```
 
-#### Create token for admin panel.
+#### Create token and password for admin panel
 
 Create `/home/vaultwarden/vaultwarden/.env` and `ADMIN_TOKEN`.
 Using Argon2, you can hash the admin password so it's never stored in plain text.
@@ -92,9 +92,9 @@ printf "ADMIN_TOKEN='%s'\n" "$ADMIN_TOKEN" | sudo -u vaultwarden tee /home/vault
 sudo chmod 600 /home/vaultwarden/vaultwarden/.env
 ```
 
-{{< alert >}} After you set up nginx navigate to https://YOUR-IP:4080/admin and enter the password you used to generate the Argon2 hash. {{< /alert >}}
+{{< alert >}} After you set up nginx navigate to https://IP_ADDRESS:4080/admin and enter the password you used to generate the Argon2 hash. {{< /alert >}}
 
-#### Create docker compose with these settings.
+#### Create docker compose with these settings
 
 Put `SIGNUPS_ALLOWED=false` after registration.
 Put `DOMAIN` to `.env` file.
@@ -141,7 +141,7 @@ services:
         max-file: "3"
 ```
 
-#### Configure SUBUID and SUBGID.
+#### Configure SUBUID and SUBGID
 Docker rootless uses user namespaces to map container `UIDs/GIDs` to unprivileged ranges on the host. The `/etc/subuid` and `/etc/subgid` files define which `UID/GID` ranges each user is allowed to use. Without these entries, the container can't create isolated users internally and will fail to start.
 
 ```bash
@@ -151,7 +151,7 @@ sudo usermod --add-subuids 200000-265535 --add-subgids 200000-265535 vaultwarden
 # check if everything works 
 grep vaultwarden /etc/subuid /etc/subgid
 ```
-#### Start docker service.
+#### Start docker service
 
 Start docker and check if it runs.
 
@@ -163,7 +163,7 @@ sudo -u vaultwarden XDG_RUNTIME_DIR=/run/user/$(id -u vaultwarden) systemctl sta
 sudo -u vaultwarden XDG_RUNTIME_DIR=/run/user/$(id -u vaultwarden) systemctl status docker 
 ```
 
-#### Start docker compose. 
+#### Start docker compose 
 
 ```bash 
 # launch docker as user vaultwarden and recreate 
@@ -173,7 +173,7 @@ cd /home/vaultwarden/vaultwarden/
 docker compose up -d --force-recreate'
 ```
 
-#### Generate certificates.
+#### Generate certificates
 
 Generate auto-signed certificates for encrypted communication with `openssl` command.
 
@@ -202,7 +202,7 @@ sudo openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
   -addext "subjectAltName=IP:<IP_ADDRESS>,DNS:<DOMAIN_NAME>"
 ```
 
-#### Configure nginx reverse proxy.
+#### Configure nginx reverse proxy
 Create file on dir `/etc/nginx/sites-enabled/reverse-proxy`.
 
 ```bash 
@@ -237,7 +237,7 @@ server {
 EOF
 ```
 
-#### Start nginx.
+#### Start nginx service 
 Run nginx and see if it's running.
 
 ```bash
@@ -260,7 +260,7 @@ sudo systemctl status nginx
 sudo journalctl -u nginx -f 
 ```
 
-#### Enable ufw Connection.
+#### Enable ufw Connection
 
 If you are in lan run this command.
 ```bash
@@ -272,7 +272,7 @@ If you're behind a VPN run this command.
 sudo ufw allow in on <VPN_INTERFACE> from <VPN_ADDRESS>/24 to any port 4080 proto tcp comment "Vaultarden from VPN"
 ```
 
-#### Install certificate on client.
+#### Install certificate on client
 Copy `*.crt` file and install on your client (IPhone/Mac/Android)
 
 ```bash
@@ -283,14 +283,14 @@ cd /tmp && python3 -m http.server 8080
 On client go to `http://<IP-SERVER>:8080/vaultwarden.crt` and your client will download certificate.
 Install using settings of your client.
 
-#### Application settings.
+#### Application settings
 Install `Bitwarden` on your client, open it and add `https://<IP-SERVER>:4080`.
 After insert mail and password you insert on server.
 
-#### Disable registration. 
+#### Disable registration 
 Change `SIGNUPS_ALLOWED=true` to `SIGNUPS_ALLOWED=false` on `docker-compose.yml` and relaunch container with [command](#start-docker-compose).
 
-#### Install agent.
+#### Install agent
 Create `docker-compose.yml` with a port is not used on your system.
 
 ```bash
