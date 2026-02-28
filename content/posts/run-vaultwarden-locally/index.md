@@ -267,11 +267,6 @@ If you are in lan run this command.
 sudo ufw allow in on <LAN_INTERFACE> from <LAN_ADDRESS>/24 to any port 4080 proto tcp comment "Vaultarden from lan"
 ```
 
-If you're behind a VPN run this command.
-```bash
-sudo ufw allow in on <VPN_INTERFACE> from <VPN_ADDRESS>/24 to any port 4080 proto tcp comment "Vaultarden from VPN"
-```
-
 #### Install certificate on client
 Copy `*.crt` file and install on your client (IPhone/Mac/Android)
 
@@ -354,6 +349,43 @@ Add these lines to schedule a daily backup at 3 AM and auto-delete backups older
 # delete backups older than 30 days
 0 4 * * * find /home/vaultwarden/backups -name \"*.tar.gz\" -mtime +30 -delete
 ```
+
+#### Access Vaultwarden from outside your network with WireGuard
+
+Since the `Bitwarden client` only accepts a single server URL, you need a way to reach your Vaultwarden instance both from your local network and from outside. If you already have a `WireGuard VPN` set up, this is straightforward.
+**Server side** — enable IP forwarding and masquerading.
+Your WireGuard clients need to reach the LAN subnet where Vaultwarden is running. Enable IP forwarding and configure NAT masquerading through `iptables`.
+
+Edit or create file `/etc/sysctl.d/99-sysctl.conf`.
+
+```bash
+# allow ip forwarding 
+sudo tee -a /etc/sysctl.d/99-sysctl.conf <<'EOF'
+    net.ipv4.ip_forward=1
+EOF 
+
+# nat masquerading 
+iptables -t nat -A POSTROUTING -s 10.0.0.0/24 -o <LAN_INTERFACE> -j MASQUERADE
+```
+
+<details>
+    <summary> Iptables command explained  </summary>
+    How masquerading works with WireGuard
+When a WireGuard client (e.g. 10.0.0.2) wants to reach a device on your LAN (e.g. 192.168.1.x), the packet arrives at the server through the tunnel with a source IP of 10.0.0.2. The problem is that LAN devices have no route back to 10.0.0.0/24, so they don't know where to send the reply.
+The rule iptables -t nat -A POSTROUTING -s 10.0.0.0/24 -o eth0 -j MASQUERADE solves this by rewriting the source IP of outgoing packets from the WireGuard subnet to the server's LAN IP before they leave the eth0 interface. The LAN device sees the packet as coming from the server itself, sends the reply back to the server, and the server forwards it back through the tunnel to the VPN client.
+In short: masquerading makes the server act as a translator between the VPN subnet and the LAN, allowing two networks that don't know about each other to communicate.
+</details>
+
+**Client side** — route LAN traffic through the tunnel.
+On your WireGuard client (phone, laptop, etc.), edit the tunnel configuration and add your `LAN subnet` to the allowed IPs of the peer:
+AllowedIPs = <VPN_ADDRESS>/24, <LAN_ADDRESS>/24
+Replace <LAN_ADDRESS>/24 with your actual `LAN subnet`.
+This tells the client to route both VPN and LAN traffic through the WireGuard tunnel when connected.    
+Set your Vaultwarden server URL to your server's LAN IP:
+https://<LAN_IP>:4080    
+From home (LAN): the client reaches the server directly — no VPN needed.
+From outside: connect to WireGuard first — traffic to your LAN is routed through the tunnel and masqueraded by the server.    
+**One URL, works everywhere.**
 
 ### Conclusion
 You now have a fully self-hosted password manager running in a security-hardened environment — Docker rootless, dedicated user, SSL encryption, Argon2 hashed admin token, and firewall rules. Your passwords never leave your network and you have full control over your data.
