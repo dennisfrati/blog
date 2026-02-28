@@ -2,9 +2,9 @@
 title: "GPG on GNU/Linux"
 description: "Understand everything about GPG on GNU/Linux os."
 draft: false
-date: 2026-02-20
+date: 2026-02-25
 tags: [ "linux", "security", "gpg", "asimmetrhic", "keys" ]
-summary: "Understand eberything about GPG."
+summary: "Understand everything about GPG on GNU/Linux os."
 ---
 
 ## GPG on Linux: Encrypt, Sign, and Verify
