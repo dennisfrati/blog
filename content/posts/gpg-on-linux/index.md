@@ -1,6 +1,6 @@
 ---
 title: "GPG on GNU/Linux"
-description: "Understand eberything about GPG."
+description: "Understand everything about GPG on GNU/Linux os."
 draft: false
 date: 2026-02-20
 tags: [ "linux", "security", "gpg", "asimmetrhic", "keys" ]
