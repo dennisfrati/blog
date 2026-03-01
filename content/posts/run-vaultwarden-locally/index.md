@@ -198,20 +198,20 @@ sudo mkdir -p /etc/nginx/ssl
 sudo openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
   -keyout /etc/nginx/ssl/vaultwarden.key \
   -out /etc/nginx/ssl/vaultwarden.crt \
-  -subj "/CN=<name>" \
-  -addext "subjectAltName=IP:<IP_ADDRESS>,DNS:<DOMAIN_NAME>"
+  -subj "/CN=__DOMAIN_NAME__" \
+  -addext "subjectAltName=IP:__IP_ADDRESS__,DNS:__DOMAIN_NAME__"
 ```
 
 #### Configure nginx reverse proxy
-Create file on dir `/etc/nginx/sites-enabled/reverse-proxy`.
+Create file `/etc/nginx/sites-enabled/vaultwarden`.
 
 ```bash 
 # write config 
-sudo tee -a /etc/nginx/sites-enabled/reverse-proxy <<'EOF'
+sudo tee /etc/nginx/sites-enabled/vaultwarden <<'EOF'
 
 server {
     listen 4080 ssl;
-    server_name <IP_ADDRESS> <DOMAIN_NAME>;
+    server_name __IP_ADDRESS__ __DOMAIN_NAME__;
 
     ssl_certificate     /etc/nginx/ssl/vaultwarden.crt;
     ssl_certificate_key /etc/nginx/ssl/vaultwarden.key;
@@ -264,7 +264,7 @@ sudo journalctl -u nginx -f
 
 If you are in lan run this command.
 ```bash
-sudo ufw allow in on <LAN_INTERFACE> from <LAN_ADDRESS>/24 to any port 4080 proto tcp comment "Vaultarden from lan"
+sudo ufw allow in on __LAN_INTERFACE__ from __LAN_ADDRESS__/24 to any port 4080 proto tcp comment "Vaultarden from lan"
 ```
 
 #### Install certificate on client
@@ -275,11 +275,11 @@ sudo cp /etc/nginx/ssl/vaultwarden.crt /tmp/
 cd /tmp && python3 -m http.server 8080 
 ```
 
-On client go to `http://<IP_SERVER>:8080/vaultwarden.crt` and your client will download certificate.
+On client go to `http://__IP_SERVER__:8080/vaultwarden.crt` and your client will download certificate.
 Install using settings of your client.
 
 #### Application settings
-Install `Bitwarden` on your client, open it and add `https://<IP_ADDRESS>:4080`.
+Install `Bitwarden` on your client, open it and add `https://__IP_ADDRESS__:4080`.
 After insert mail and password you insert on server.
 
 #### Disable registration 
@@ -293,7 +293,7 @@ Create `docker-compose.yml` with a port is not used on your system.
 sudo ss -tulpn | grep -E ':9[0-9]{3}'
 
 # select port 
-AGENT_PORT="<AVAILABLE_PORT>"
+AGENT_PORT="__AVAILABLE_PORT__"
 
 # content of docker-compose.yml
 VAULT_UID=$(id -u vaultwarden)
@@ -315,7 +315,7 @@ EOF
 ```
 
 ``` bash
-sudo ufw allow from 127.0.0.1 to any port <AVAILABLE_PORT>
+sudo ufw allow from 127.0.0.1 to any port __AVAILABLE_PORT__ 
 ```
 
 Launch portainer agent.
@@ -326,7 +326,7 @@ cd /home/vaultwarden/vaultwarden/portainer-agent/
 docker compose up -d --force-recreate'
 ```
 
-Go to the Portainer dashboard, navigate to Environments → Add environment, select Docker Standalone → Agent, and enter your server IP with the agent port (e.g. IP_ADDRESS:AVAILABLE_PORT) as the Environment URL.
+Go to the Portainer dashboard, navigate to Environments → Add environment, select Docker Standalone → Agent, and enter your server IP with the agent port (e.g. __IP_ADDRESS__:__AVAILABLE_PORT__) as the Environment URL.
 
 #### Backup
 
@@ -378,11 +378,11 @@ In short: masquerading makes the server act as a translator between the VPN subn
 
 **Client side** — route LAN traffic through the tunnel.
 On your WireGuard client (phone, laptop, etc.), edit the tunnel configuration and add your `LAN subnet` to the allowed IPs of the peer:
-AllowedIPs = <VPN_ADDRESS>/24, <LAN_ADDRESS>/24
-Replace <LAN_ADDRESS>/24 with your actual `LAN subnet`.
+AllowedIPs = __VPN_ADDRESS__/24, __LAN_ADDRESS__/24
+Replace __LAN_ADDRESS__/24 with your actual `LAN subnet`.
 This tells the client to route both VPN and LAN traffic through the WireGuard tunnel when connected.    
 Set your Vaultwarden server URL to your server's LAN IP:
-https://<LAN_IP>:4080    
+https://__LAN_IP__:4080    
 From home (LAN): the client reaches the server directly — no VPN needed.
 From outside: connect to WireGuard first — traffic to your LAN is routed through the tunnel and masqueraded by the server.    
 **One URL, works everywhere.**
