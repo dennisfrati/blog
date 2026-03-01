@@ -96,8 +96,8 @@ sudo chmod 600 /home/vaultwarden/vaultwarden/.env
 
 #### Create docker compose with these settings
 
-Put `SIGNUPS_ALLOWED=false` after registration.
-Put `DOMAIN` to `.env` file.
+Put `SIGNUPS_ALLOWED=false` after registration.    
+Put `DOMAIN` to `/home/vaultwarden/vaultwarden/.env` file after `ADMIN_TOKEN`.
 
 ```bash 
 # docker-compose.yml
@@ -378,8 +378,8 @@ In short: masquerading makes the server act as a translator between the VPN subn
 
 **Client side** — route LAN traffic through the tunnel.
 On your WireGuard client (phone, laptop, etc.), edit the tunnel configuration and add your `LAN subnet` to the allowed IPs of the peer:
-AllowedIPs = __VPN_ADDRESS__/24, __LAN_ADDRESS__/24
-Replace __LAN_ADDRESS__/24 with your actual `LAN subnet`.
+AllowedIPs = __VPN_ADDRESS__/24, __LAN_ADDRESS__/24    
+Replace __LAN_ADDRESS__/24 with your actual `LAN subnet`.       
 This tells the client to route both VPN and LAN traffic through the WireGuard tunnel when connected.    
 Set your Vaultwarden server URL to your server's LAN IP:
 https://__LAN_IP__:4080    
