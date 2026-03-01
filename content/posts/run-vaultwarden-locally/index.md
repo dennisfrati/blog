@@ -96,7 +96,7 @@ sudo chmod 600 /home/vaultwarden/vaultwarden/.env
 
 #### Create docker compose with these settings
 
-Put `SIGNUPS_ALLOWED=false` after registration otherwise anyone who reaches your instance can register.     .    
+Put `SIGNUPS_ALLOWED=false` after registration otherwise anyone who reaches your instance can register.      
 Put `DOMAIN` to `/home/vaultwarden/vaultwarden/.env` file after `ADMIN_TOKEN`.
 
 ```bash 
@@ -205,9 +205,56 @@ sudo openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
 #### Configure nginx reverse proxy
 Create file `/etc/nginx/sites-enabled/vaultwarden`.
 
+<details>
+    <summary>nginx config explained</summary>
+**Default server block:**
+
+- `listen 4080 ssl default_server`: catches all requests that don't match any configured server name. Acts as a fallback.
+- `return 444`: special nginx code that closes the connection immediately without sending any response. Drops unknown or malicious requests silently.
+
+**Main server block:**
+
+- `listen 4080 ssl`: listens on port 4080 with SSL enabled.
+- `server_name`: defines which hostnames this server block responds to.
+
+**TLS hardening:**
+
+- `ssl_protocols TLSv1.2 TLSv1.3`: only accepts TLS 1.2 and 1.3. Older versions (1.0, 1.1) have known vulnerabilities and are deprecated.
+- `ssl_ciphers HIGH:!aNULL:!MD5:!RC4`: uses only strong ciphers. Excludes those without authentication (`aNULL`), and broken algorithms (`MD5`, `RC4`).
+- `ssl_prefer_server_ciphers on`: the server chooses the cipher, not the client. Prevents a compromised client from forcing a weak cipher.
+- `ssl_session_cache shared:SSL:10m`: shared TLS session cache across nginx workers (10 MB ≈ 40,000 sessions). Avoids renegotiating TLS on every request.
+- `ssl_session_timeout 10m`: cached TLS sessions expire after 10 minutes.
+
+**Security headers:**
+
+- `X-Content-Type-Options "nosniff"`: prevents the browser from guessing the MIME type of a file. Without this, a browser could interpret a text file as HTML and execute malicious JavaScript.
+- `X-Frame-Options "SAMEORIGIN"`: the site can only be loaded in an iframe by itself. Blocks clickjacking attacks.
+- `X-XSS-Protection "0"`: disables the legacy browser XSS filter, which could actually introduce new vulnerabilities. Modern browsers don't need it.
+- `Referrer-Policy "strict-origin-when-cross-origin"`: when navigating to an external site, the browser sends only the origin (e.g. `https://yourdomain.com`), not the full URL path. Prevents leaking sensitive information.
+- `Strict-Transport-Security "max-age=31536000; includeSubDomains"`: HSTS — tells the browser to only connect via HTTPS for the next 365 days, even if the user types `http://`. Prevents downgrade attacks.
+- `always`: ensures the header is sent on all responses, including error pages (403, 500, etc.).
+
+**Other directives:**
+
+- `client_max_body_size 525M`: maximum allowed size for request body. Needed for Vaultwarden file attachments.
+- `proxy_pass`: forwards requests to the Vaultwarden container on port 5080.
+- `proxy_set_header Host $host`: preserves the original hostname.
+- `proxy_set_header X-Real-IP $remote_addr`: passes the real client IP to the backend (otherwise Vaultwarden would always see 127.0.0.1).
+- `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for`: passes the full proxy chain.
+- `proxy_set_header X-Forwarded-Proto $scheme`: tells the backend whether the original connection was HTTP or HTTPS.
+- `proxy_set_header Upgrade $http_upgrade` and `Connection "upgrade"`: required for WebSocket connections. Vaultwarden uses WebSocket for real-time sync notifications between clients.    
+</details>
+
 ```bash 
 # write config 
 sudo tee /etc/nginx/sites-enabled/vaultwarden <<'EOF'
+
+server {
+    listen 4080 ssl default_server;
+    ssl_certificate     /etc/nginx/ssl/vaultwarden.crt;
+    ssl_certificate_key /etc/nginx/ssl/vaultwarden.key;
+    return 444;
+}
 
 server {
     listen 4080 ssl;
@@ -215,6 +262,18 @@ server {
 
     ssl_certificate     /etc/nginx/ssl/vaultwarden.crt;
     ssl_certificate_key /etc/nginx/ssl/vaultwarden.key;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5:!RC4;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "0" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 
     client_max_body_size 525M;
 
@@ -348,6 +407,25 @@ Add these lines to schedule a daily backup at 3 AM and auto-delete backups older
 
 # delete backups older than 30 days
 0 4 * * * find /home/vaultwarden/backups -name \"*.tar.gz\" -mtime +30 -delete
+```
+
+#### Test backup restore 
+
+After setting up the cron backup, periodically verify that the database is not corrupted using the `sqlite3` command.
+
+```bash 
+# test restore (run manually to verify backups work)
+sudo -u vaultwarden mkdir -p /tmp/vaultwarden-restore-test
+
+sudo -u vaultwarden tar xzf /home/vaultwarden/backups/vaultwarden-$(date +%Y%m%d).tar.gz \
+  -C /tmp/vaultwarden-restore-test
+
+# check that the SQLite database is valid
+sqlite3 /tmp/vaultwarden-restore-test/data/db.sqlite3 "PRAGMA integrity_check;"
+
+# cleanup
+rm -rf /tmp/vaultwarden-restore-test
+Se integrity_check ritorna ok, il backup è valido e ripristinabile.
 ```
 
 #### Access Vaultwarden from outside your network with WireGuard
