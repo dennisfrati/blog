@@ -96,7 +96,7 @@ sudo chmod 600 /home/vaultwarden/vaultwarden/.env
 
 #### Create docker compose with these settings
 
-Put `SIGNUPS_ALLOWED=false` after registration.    
+Put `SIGNUPS_ALLOWED=false` after registration otherwise anyone who reaches your instance can register.     .    
 Put `DOMAIN` to `/home/vaultwarden/vaultwarden/.env` file after `ADMIN_TOKEN`.
 
 ```bash 
