@@ -203,10 +203,12 @@ sudo openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
 ```
 
 #### Configure nginx reverse proxy
-Create file `/etc/nginx/sites-enabled/vaultwarden`.
+Create file `/etc/nginx/sites-available/vaultwarden` and make symlink to `/etc/nginx/sites-enabled/` dir.     
+This lets you disable a site by simply removing the symlink, without deleting the actual configuration file.
 
 <details>
     <summary>nginx config explained</summary>
+
 **Default server block:**
 
 - `listen 4080 ssl default_server`: catches all requests that don't match any configured server name. Acts as a fallback.
@@ -247,7 +249,7 @@ Create file `/etc/nginx/sites-enabled/vaultwarden`.
 
 ```bash 
 # write config 
-sudo tee /etc/nginx/sites-enabled/vaultwarden <<'EOF'
+sudo tee /etc/nginx/sites-available/vaultwarden <<'EOF'
 
 server {
     listen 4080 ssl default_server;
@@ -294,6 +296,9 @@ server {
 }
 
 EOF
+
+# make symlink
+sudo ln -s /etc/nginx/sites-available/vaultwarden /etc/nginx/sites-enabled/vaultwarden
 ```
 
 #### Start nginx service 
